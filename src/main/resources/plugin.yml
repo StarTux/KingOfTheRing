@@ -1,0 +1,37 @@
+main: com.cavetale.kingofthering.KingOfTheRingPlugin
+
+name: KingOfTheRing
+version: 0.1
+description: KingOfTheRing Plugin
+api-version: 1.17
+
+author: StarTux
+website: https://github.com/StarTux/KingOfTheRing
+
+depend: [WorldEdit, Core, Sidebar]
+softdepend: []
+
+commands:
+
+  kingofthering:
+    aliases: [kotr]
+    description: KingOfTheRing Command
+    permission: kingofthering.kingofthering
+    usage: |-
+      /kingofthering
+
+  pitofdoom:
+    aliases: [pit]
+    description: Warp
+    permission: kingofthering.pitofdoom
+    usage: /pit
+
+permissions:
+
+  kingofthering.kingofthering:
+    description: Use /kingofthering
+    default: op
+
+  kingofthering.pitofdoom:
+    description: Warp
+    default: true
