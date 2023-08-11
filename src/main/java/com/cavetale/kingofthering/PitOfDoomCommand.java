@@ -18,7 +18,12 @@ public final class PitOfDoomCommand implements TabExecutor {
             sender.sendMessage("[kotr:pitofdoom] player expected");
             return true;
         }
-        plugin.spawnPlayer(player);
+        for (Game game : plugin.games.values()) {
+            if (game.isRunning()) {
+                game.spawnPlayer(player);
+                break;
+            }
+        }
         return true;
     }
 

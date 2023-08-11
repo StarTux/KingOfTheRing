@@ -1,117 +1,76 @@
 package com.cavetale.kingofthering;
 
-import com.cavetale.core.struct.Cuboid;
-import com.cavetale.core.struct.Vec3i;
-import java.util.ArrayList;
+import com.cavetale.core.command.AbstractCommand;
+import com.cavetale.core.command.CommandArgCompleter;
+import com.cavetale.core.command.CommandWarn;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.bukkit.Particle;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
+import static com.cavetale.core.command.CommandArgCompleter.supplyIgnoreCaseList;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
-@RequiredArgsConstructor
-public final class KingOfTheRingCommand implements TabExecutor {
-    private final KingOfTheRingPlugin plugin;
-
-    public void enable() {
-        plugin.getCommand("kingofthering").setExecutor(this);
+public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlugin> {
+    protected KingOfTheRingCommand(final KingOfTheRingPlugin plugin) {
+        super(plugin, "kingofthering");
     }
 
     @Override
-    public boolean onCommand(final CommandSender sender, final Command command, final String alias, final String[] args) {
-        Player player = sender instanceof Player ? (Player) sender : null;
-        if (args.length == 0) {
-            player.teleport(plugin.save.spawn.toBlock(plugin.getWorld()).getLocation().add(0.5, 1.0, 0.5));
-            return true;
-        }
-        switch (args[0]) {
-        case "debug": {
-            plugin.save.debug = !plugin.save.debug;
-            plugin.save();
-            player.sendMessage("Debug = " + plugin.save.debug);
-            return true;
-        }
-        case "area": {
-            plugin.save.world = player.getWorld().getName();
-            plugin.save.area = Cuboid.selectionOf(player);
-            player.sendMessage("Area updated: " + plugin.save.world + ", " + plugin.save.area);
-            plugin.save();
-            return true;
-        }
-        case "death": {
-            plugin.save.death = Cuboid.selectionOf(player);
-            player.sendMessage("Death area updated: " + plugin.save.death);
-            plugin.save();
-            return true;
-        }
-        case "perimeter": {
-            plugin.save.perimeter = Cuboid.selectionOf(player);
-            player.sendMessage("Perimieter updated: " + plugin.save.perimeter);
-            plugin.save();
-            return true;
-        }
-        case "spawn": {
-            plugin.save.spawn = Vec3i.of(player.getLocation().getBlock());
-            player.sendMessage("Spawn updated: " + plugin.save.world + ", " + plugin.save.spawn);
-            plugin.save();
-            return true;
-        }
-        case "start": {
-            plugin.start();
-            sender.sendMessage("starting");
-            return true;
-        }
-        case "stop": {
-            plugin.stop();
-            sender.sendMessage("stopping");
-            return true;
-        }
-        case "platform": {
-            Cuboid sel = Cuboid.selectionOf(player);
-            plugin.save.platforms.add(sel);
-            plugin.save();
-            player.sendMessage("Platform added: " + sel);
-            return true;
-        }
-        case "rmplatform": {
-            Cuboid sel = Cuboid.selectionOf(player);
-            List<Cuboid> platformsToRemove = new ArrayList<>();
-            for (Cuboid platform : plugin.save.platforms) {
-                if (sel.contains(platform)) {
-                    platformsToRemove.add(platform);
-                }
-            }
-            plugin.save.platforms.removeAll(platformsToRemove);
-            plugin.save();
-            player.sendMessage(platformsToRemove.size() + " platforms removed: " + platformsToRemove);
-            return true;
-        }
-        case "hl": {
-            for (Cuboid cuboid : plugin.save.platforms) {
-                cuboid.highlight(plugin.getWorld(), 0.0, location -> {
-                        player.spawnParticle(Particle.END_ROD, location, 1, 0, 0, 0, 0);
-                    });
-            }
-            plugin.save.area.highlight(plugin.getWorld(), 0.0, location -> {
-                    player.spawnParticle(Particle.WAX_ON, location, 1, 0, 0, 0, 0);
-                });
-            player.sendMessage("Highlighting");
-            return true;
-        }
-        default: return false;
-        }
+    protected void onEnable() {
+        rootNode.addChild("debug").arguments("[debug]")
+            .completers(CommandArgCompleter.BOOLEAN)
+            .description("Debug spam")
+            .senderCaller(this::debug);
+        rootNode.addChild("event").arguments("[event]")
+            .completers(CommandArgCompleter.BOOLEAN)
+            .description("Set event mode")
+            .senderCaller(this::event);
+        rootNode.addChild("start").arguments("<game>")
+            .completers(supplyIgnoreCaseList(() -> List.copyOf(plugin.games.keySet())))
+            .description("Start a game")
+            .senderCaller(this::start);
+        rootNode.addChild("stop").arguments("<game>")
+            .completers(supplyIgnoreCaseList(() -> List.copyOf(plugin.games.keySet())))
+            .description("Stop a game")
+            .senderCaller(this::stop);
     }
 
-    @Override
-    public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
-        if (args.length == 1) {
-            List<String> result = new ArrayList<>(List.of("area", "death", "perimeter", "spawn", "start", "stop",
-                                                          "platform", "rmplatform", "debug", "hl"));
-            result.removeIf(i -> !i.contains(args[0]));
-            return result;
+    private boolean debug(CommandSender sender, String[] args) {
+        if (args.length > 1) {
+            return false;
+        } else if (args.length == 1) {
+            plugin.save.debug = CommandArgCompleter.requireBoolean(args[0]);
+            plugin.save();
         }
-        return null;
+        sender.sendMessage(text("Debug = " + plugin.save.debug, YELLOW));
+        return true;
+    }
+
+    private boolean event(CommandSender sender, String[] args) {
+        if (args.length > 1) {
+            return false;
+        } else if (args.length == 1) {
+            plugin.save.event = CommandArgCompleter.requireBoolean(args[0]);
+            plugin.save();
+        }
+        sender.sendMessage(text("Event = " + plugin.save.event, YELLOW));
+        return true;
+    }
+
+    private boolean start(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        Game game = plugin.games.get(args[0]);
+        if (game == null) throw new CommandWarn("Game not found: " + args[0]);
+        game.start();
+        sender.sendMessage(text("Starting game: " + game.name, AQUA));
+        return true;
+    }
+
+    private boolean stop(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        Game game = plugin.games.get(args[0]);
+        if (game == null) throw new CommandWarn("Game not found: " + args[0]);
+        game.stop();
+        sender.sendMessage(text("Stopping game: " + game.name, YELLOW));
+        return true;
     }
 }

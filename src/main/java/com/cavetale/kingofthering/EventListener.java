@@ -16,6 +16,8 @@ import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
@@ -29,85 +31,105 @@ public final class EventListener implements Listener {
 
     @EventHandler
     private void onPlayerDropItem(PlayerDropItemEvent event) {
-        if (!plugin.isRunning()) return;
-        if (plugin.isPlayer(event.getPlayer())) {
-            event.setCancelled(true);
-        }
+        plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
+                if (!game.isRunning()) return;
+                if (game.isPlayer(event.getPlayer())) {
+                    event.setCancelled(true);
+                }
+            });
     }
 
     @EventHandler
     private void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (!plugin.isRunning()) return;
-        if (!event.getEntity().getWorld().getName().equals(plugin.save.world)) return;
-        if (event.getEntity() instanceof Player) {
-            if (plugin.save.area.contains(event.getEntity().getLocation())) {
-                if (event.getDamager() instanceof Player) {
-                    event.setDamage(0.0);
+        plugin.applyGameAt(event.getEntity().getLocation(), game -> {
+                if (!game.isRunning()) return;
+                if (event.getEntity() instanceof Player) {
+                    if (event.getDamager() instanceof Player) {
+                        event.setDamage(0.0);
+                    }
                 }
-            }
-        }
+            });
     }
 
     @EventHandler
     private void onFoodLevelChange(FoodLevelChangeEvent event) {
-        if (!plugin.isRunning()) return;
-        if (!(event.getEntity() instanceof Player)) return;
-        Player player = (Player) event.getEntity();
-        if (plugin.isPlayer(player) && event.getFoodLevel() < player.getFoodLevel()) {
-            event.setCancelled(true);
-        }
+        plugin.applyGameAt(event.getEntity().getLocation(), game -> {
+                if (!game.isRunning()) return;
+                if (!(event.getEntity() instanceof Player)) return;
+                Player player = (Player) event.getEntity();
+                if (game.isPlayer(player) && event.getFoodLevel() < player.getFoodLevel()) {
+                    event.setCancelled(true);
+                }
+            });
     }
 
     @EventHandler
     private void onPlayerTeleport(PlayerTeleportEvent event) {
-        if (!plugin.isRunning()) return;
         if (plugin.teleporting) return;
-        if (plugin.isPlayer(event.getPlayer())) {
-            event.setCancelled(true);
-        } else if (plugin.save.area.contains(event.getTo())) {
-            event.setCancelled(true);
-        }
+        plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
+                if (!game.isRunning()) return;
+                if (game.isPlayer(event.getPlayer())) {
+                    event.setCancelled(true);
+                }
+            });
+        plugin.applyGameAt(event.getTo(), game -> {
+                event.setCancelled(true);
+            });
     }
 
     @EventHandler
     private void onPlayerBlockAbility(PlayerBlockAbilityQuery event) {
-        if (!plugin.isRunning()) return;
-        if (!plugin.isPlayer(event.getPlayer())) return;
-        switch (event.getAction()) {
-        case FLY:
-            event.setCancelled(true);
-            break;
-        default: break;
-        }
+        plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
+                if (!game.isRunning()) return;
+                if (!game.isPlayer(event.getPlayer())) return;
+                switch (event.getAction()) {
+                case FLY:
+                    event.setCancelled(true);
+                    break;
+                default: break;
+                }
+            });
     }
 
     @EventHandler(priority = EventPriority.LOW)
     private void onEntityToggleGlideEvent(EntityToggleGlideEvent event) {
-        if (!plugin.isRunning()) return;
-        if (!(event.getEntity() instanceof Player)) return;
-        Player player = (Player) event.getEntity();
-        if (plugin.isPlayer(player) && event.isGliding()) {
-            event.setCancelled(true);
-            player.sendMessage(text("No flying!", RED));
-            plugin.removePlayer(player);
-            plugin.spawnPlayer(player);
-        }
+        plugin.applyGameAt(event.getEntity().getLocation(), game -> {
+                if (!game.isRunning()) return;
+                if (!(event.getEntity() instanceof Player)) return;
+                Player player = (Player) event.getEntity();
+                if (game.isPlayer(player) && event.isGliding()) {
+                    event.setCancelled(true);
+                    player.sendMessage(text("No flying!", RED));
+                    game.removePlayer(player);
+                    game.spawnPlayer(player);
+                }
+            });
     }
 
     @EventHandler
     private void onPlayerHud(PlayerHudEvent event) {
-        if (!plugin.isRunning()) return;
-        if (!plugin.save.world.equals(event.getPlayer().getWorld().getName())) return;
-        if (!plugin.save.perimeter.contains(event.getPlayer().getLocation())) return;
-        List<Component> lines = List.of(text("Pit of Doom", GOLD),
-                                        text("Round ", GOLD)
-                                        .append(text(plugin.save.loopCount + 1, WHITE)),
-                                        text("Alive ", GOLD)
-                                        .append(text(plugin.save.players.size(), WHITE)),
-                                        text("You are ", GOLD)
-                                        .append(plugin.isPlayer(event.getPlayer())
-                                                ? text("Alive", GREEN)
-                                                : text("Dead", DARK_RED)));
-        event.sidebar(PlayerHudPriority.HIGH, lines);
+        plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
+                if (!game.isRunning()) return;
+                List<Component> lines = List.of(text("Pit of Doom", GOLD),
+                                                text("Round ", GOLD)
+                                                .append(text(game.save.loopCount + 1, WHITE)),
+                                                text("Alive ", GOLD)
+                                                .append(text(game.save.players.size(), WHITE)),
+                                                text("You are ", GOLD)
+                                                .append(game.isPlayer(event.getPlayer())
+                                                        ? text("Alive", GREEN)
+                                                        : text("Dead", DARK_RED)));
+                event.sidebar(PlayerHudPriority.HIGH, lines);
+            });
+    }
+
+    @EventHandler
+    private void onWorldLoad(WorldLoadEvent event) {
+        plugin.onLoadWorld(event.getWorld());
+    }
+
+    @EventHandler
+    private void onWorldUnload(WorldUnloadEvent event) {
+        plugin.onUnloadWorld(event.getWorld());
     }
 }
