@@ -1,5 +1,8 @@
 package com.cavetale.kingofthering;
 
+import com.cavetale.core.struct.Cuboid;
+import com.cavetale.core.struct.Vec3i;
+import com.cavetale.core.util.Json;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +13,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -22,13 +24,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public final class KingOfTheRingPlugin extends JavaPlugin {
-    KingOfTheRingCommand kingoftheringCommand = new KingOfTheRingCommand(this);
-    EventListener eventListener = new EventListener(this);
-    Save save;
-    boolean teleporting;
-    BukkitTask task;
+    protected KingOfTheRingCommand kingoftheringCommand = new KingOfTheRingCommand(this);
+    protected EventListener eventListener = new EventListener(this);
+    protected Save save;
+    protected boolean teleporting;
+    protected BukkitTask task;
     protected Random random = new Random();
     protected final List<Platform> platforms = new ArrayList<>();
     protected final List<Creeper> creepers = new ArrayList<>();
@@ -54,20 +58,20 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         cleanUp();
     }
 
-    void save() {
+    protected void save() {
         getDataFolder().mkdirs();
         Json.save(new File(getDataFolder(), "save.json"), save, true);
     }
 
-    void load() {
+    protected void load() {
         save = Json.load(new File(getDataFolder(), "save.json"), Save.class, Save::new);
     }
 
-    World getWorld() {
+    protected World getWorld() {
         return Bukkit.getWorld(save.world);
     }
 
-    List<Player> getActivePlayers() {
+    protected List<Player> getActivePlayers() {
         List<Player> result = new ArrayList<>();
         for (UUID uuid : save.players.keySet()) {
             Player player = Bukkit.getPlayer(uuid);
@@ -76,7 +80,7 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         return result;
     }
 
-    List<Player> playersInPerimeter() {
+    protected List<Player> playersInPerimeter() {
         List<Player> result = new ArrayList<>();
         for (Player player : getWorld().getPlayers()) {
             if (!save.perimeter.contains(player.getLocation())) continue;
@@ -85,7 +89,7 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         return result;
     }
 
-    void tick() {
+    protected void tick() {
         World world = Bukkit.getWorld(save.world);
         if (world == null) return;
         save.players.keySet().removeIf(u -> Bukkit.getPlayer(u) == null);
@@ -100,7 +104,7 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         for (Player player : players) {
             if (player.getGameMode() == GameMode.SPECTATOR || player.getGameMode() == GameMode.CREATIVE) continue;
             if (!save.area.contains(player.getLocation())) {
-                player.sendMessage(ChatColor.RED + "You left the area!");
+                player.sendMessage(text("You left the area!", RED));
                 removePlayer(player);
             }
         }
@@ -152,7 +156,7 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         }
     }
 
-    void start() {
+    protected void start() {
         World world = Bukkit.getWorld(save.world);
         if (world == null) return;
         List<String> names = new ArrayList<>();
@@ -160,7 +164,7 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         for (Player player : playersInPerimeter()) {
             if (player.getGameMode() == GameMode.SPECTATOR || player.getGameMode() == GameMode.CREATIVE) continue;
             player.teleport(randomSpawnLocation());
-            player.sendMessage(ChatColor.DARK_RED + "Get ready!");
+            player.sendMessage(text("Get ready!", DARK_RED));
             player.showTitle(Title.title(Component.text("Get ready!", NamedTextColor.GREEN),
                                          Component.text("The game begins", NamedTextColor.GREEN)));
             player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, SoundCategory.MASTER, 0.5f, 2.0f);
@@ -178,11 +182,13 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         save.loopCount = 0;
         save();
         if (names.isEmpty()) return;
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "ml add " + String.join(" ", names));
+        if (save.event) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "ml add " + String.join(" ", names));
+        }
         task = Bukkit.getScheduler().runTaskTimer(this, this::tick, 1L, 1L);
     }
 
-    void stop() {
+    protected void stop() {
         task.cancel();
         save.state = State.IDLE;
         save.players.clear();
@@ -190,11 +196,11 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         cleanUp();
     }
 
-    boolean isRunning() {
+    protected boolean isRunning() {
         return save.state != State.IDLE;
     }
 
-    Location randomSpawnLocation() {
+    protected Location randomSpawnLocation() {
         List<Vec3i> list = new ArrayList<>();
         for (Cuboid it : save.platforms) {
             list.addAll(it.enumerate());
@@ -217,7 +223,7 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         teleporting = false;
     }
 
-    void win(Player winner) {
+    protected void win(Player winner) {
         for (Player player : playersInPerimeter()) {
             player.sendMessage(Component.text()
                                .append(winner.displayName())
@@ -225,14 +231,16 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
             player.showTitle(Title.title(winner.displayName(),
                                          Component.text("wins the game", NamedTextColor.GREEN)));
         }
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "titles unlockset " + winner.getName()
-                               + " " + String.join(" ", WINNER_TITLES));
+        if (save.event) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "titles unlockset " + winner.getName()
+                                   + " " + String.join(" ", WINNER_TITLES));
+        }
         stop();
     }
 
-    void draw() {
+    protected void draw() {
         for (Player player : playersInPerimeter()) {
-            player.sendMessage(ChatColor.RED + "DRAW! Nobody wins");
+            player.sendMessage(text("DRAW! Nobody wins", RED));
             player.showTitle(Title.title(Component.text("Draw!", NamedTextColor.RED),
                                         Component.text("Nobody wins", NamedTextColor.RED)));
         }

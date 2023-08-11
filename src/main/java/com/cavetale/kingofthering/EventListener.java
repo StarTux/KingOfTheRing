@@ -1,13 +1,12 @@
 package com.cavetale.kingofthering;
 
-import com.cavetale.core.event.player.PluginPlayerEvent;
-import com.cavetale.sidebar.PlayerSidebarEvent;
-import com.cavetale.sidebar.Priority;
+import com.cavetale.core.event.block.PlayerBlockAbilityQuery;
+import com.cavetale.core.event.hud.PlayerHudEvent;
+import com.cavetale.core.event.hud.PlayerHudPriority;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -29,7 +28,7 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler
-    void onPlayerDropItem(PlayerDropItemEvent event) {
+    private void onPlayerDropItem(PlayerDropItemEvent event) {
         if (!plugin.isRunning()) return;
         if (plugin.isPlayer(event.getPlayer())) {
             event.setCancelled(true);
@@ -37,7 +36,7 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler
-    void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+    private void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (!plugin.isRunning()) return;
         if (!event.getEntity().getWorld().getName().equals(plugin.save.world)) return;
         if (event.getEntity() instanceof Player) {
@@ -50,7 +49,7 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler
-    void onFoodLevelChange(FoodLevelChangeEvent event) {
+    private void onFoodLevelChange(FoodLevelChangeEvent event) {
         if (!plugin.isRunning()) return;
         if (!(event.getEntity() instanceof Player)) return;
         Player player = (Player) event.getEntity();
@@ -60,7 +59,7 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler
-    void onPlayerTeleport(PlayerTeleportEvent event) {
+    private void onPlayerTeleport(PlayerTeleportEvent event) {
         if (!plugin.isRunning()) return;
         if (plugin.teleporting) return;
         if (plugin.isPlayer(event.getPlayer())) {
@@ -71,11 +70,11 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler
-    void onPluginPlayer(PluginPlayerEvent event) {
+    private void onPlayerBlockAbility(PlayerBlockAbilityQuery event) {
         if (!plugin.isRunning()) return;
         if (!plugin.isPlayer(event.getPlayer())) return;
-        switch (event.getName()) {
-        case START_FLYING:
+        switch (event.getAction()) {
+        case FLY:
             event.setCancelled(true);
             break;
         default: break;
@@ -83,20 +82,20 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    void onEntityToggleGlideEvent(EntityToggleGlideEvent event) {
+    private void onEntityToggleGlideEvent(EntityToggleGlideEvent event) {
         if (!plugin.isRunning()) return;
         if (!(event.getEntity() instanceof Player)) return;
         Player player = (Player) event.getEntity();
         if (plugin.isPlayer(player) && event.isGliding()) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "No flying!");
+            player.sendMessage(text("No flying!", RED));
             plugin.removePlayer(player);
             plugin.spawnPlayer(player);
         }
     }
 
     @EventHandler
-    void onPlayerSidebar(PlayerSidebarEvent event) {
+    private void onPlayerHud(PlayerHudEvent event) {
         if (!plugin.isRunning()) return;
         if (!plugin.save.world.equals(event.getPlayer().getWorld().getName())) return;
         if (!plugin.save.perimeter.contains(event.getPlayer().getLocation())) return;
@@ -109,6 +108,6 @@ public final class EventListener implements Listener {
                                         .append(plugin.isPlayer(event.getPlayer())
                                                 ? text("Alive", GREEN)
                                                 : text("Dead", DARK_RED)));
-        event.add(plugin, Priority.HIGHEST, lines);
+        event.sidebar(PlayerHudPriority.HIGH, lines);
     }
 }

@@ -1,5 +1,7 @@
 package com.cavetale.kingofthering;
 
+import com.cavetale.core.struct.Cuboid;
+import com.cavetale.core.struct.Vec3i;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,19 +35,19 @@ public final class KingOfTheRingCommand implements TabExecutor {
         }
         case "area": {
             plugin.save.world = player.getWorld().getName();
-            plugin.save.area = WorldEdit.getSelection(player);
+            plugin.save.area = Cuboid.selectionOf(player);
             player.sendMessage("Area updated: " + plugin.save.world + ", " + plugin.save.area);
             plugin.save();
             return true;
         }
         case "death": {
-            plugin.save.death = WorldEdit.getSelection(player);
+            plugin.save.death = Cuboid.selectionOf(player);
             player.sendMessage("Death area updated: " + plugin.save.death);
             plugin.save();
             return true;
         }
         case "perimeter": {
-            plugin.save.perimeter = WorldEdit.getSelection(player);
+            plugin.save.perimeter = Cuboid.selectionOf(player);
             player.sendMessage("Perimieter updated: " + plugin.save.perimeter);
             plugin.save();
             return true;
@@ -67,14 +69,14 @@ public final class KingOfTheRingCommand implements TabExecutor {
             return true;
         }
         case "platform": {
-            Cuboid sel = WorldEdit.getSelection(player);
+            Cuboid sel = Cuboid.selectionOf(player);
             plugin.save.platforms.add(sel);
             plugin.save();
             player.sendMessage("Platform added: " + sel);
             return true;
         }
         case "rmplatform": {
-            Cuboid sel = WorldEdit.getSelection(player);
+            Cuboid sel = Cuboid.selectionOf(player);
             List<Cuboid> platformsToRemove = new ArrayList<>();
             for (Cuboid platform : plugin.save.platforms) {
                 if (sel.contains(platform)) {

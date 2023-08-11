@@ -1,3 +1,3 @@
-# KingOfTheRing
+# KingOfTheRing aka Pit of Doom
 
-KingOfTheRing plugin.
+Pit of Doom event plugin.

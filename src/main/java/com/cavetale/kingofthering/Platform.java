@@ -10,11 +10,11 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 
 public final class Platform {
-    List<Block> blocks = new ArrayList<>();
-    List<BlockData> blockData = new ArrayList<>();
-    int ticks = 0;
+    protected List<Block> blocks = new ArrayList<>();
+    protected List<BlockData> blockData = new ArrayList<>();
+    protected int ticks = 0;
 
-    void tick() {
+    protected void tick() {
         ticks += 1;
         if (ticks == 1) {
             setAll(Material.BLACK_STAINED_GLASS.createBlockData());
@@ -35,13 +35,13 @@ public final class Platform {
         }
     }
 
-    void setAll(BlockData data) {
+    protected void setAll(BlockData data) {
         for (int i = 0; i < blocks.size(); i += 1) {
             blocks.get(i).setBlockData(data);
         }
     }
 
-    void resetAll() {
+    protected void resetAll() {
         for (int i = 0; i < blocks.size(); i += 1) {
             blocks.get(i).setBlockData(blockData.get(i), false);
         }
