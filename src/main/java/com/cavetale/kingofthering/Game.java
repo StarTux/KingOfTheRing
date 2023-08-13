@@ -300,6 +300,9 @@ public final class Game {
         if (plugin.save.event) {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "titles unlockset " + winner.getName()
                                    + " " + String.join(" ", KingOfTheRingPlugin.WINNER_TITLES));
+            plugin.save.addScore(winner.getUniqueId(), 10);
+            plugin.computeHighscore();
+            plugin.save();
         }
         stop();
     }
