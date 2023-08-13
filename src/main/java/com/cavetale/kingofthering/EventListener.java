@@ -109,7 +109,12 @@ public final class EventListener implements Listener {
     @EventHandler
     private void onPlayerHud(PlayerHudEvent event) {
         plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
-                if (!game.isRunning()) return;
+                if (!game.isRunning()) {
+                    if (plugin.save.event) {
+                        event.sidebar(PlayerHudPriority.HIGH, plugin.highscoreLines);
+                    }
+                    return;
+                }
                 List<Component> lines = List.of(text("Pit of Doom", GOLD),
                                                 text("Round ", GOLD)
                                                 .append(text(game.save.loopCount + 1, WHITE)),

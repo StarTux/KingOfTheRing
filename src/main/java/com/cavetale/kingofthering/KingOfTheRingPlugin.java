@@ -3,16 +3,22 @@ package com.cavetale.kingofthering;
 import com.cavetale.area.struct.Area;
 import com.cavetale.area.struct.AreasFile;
 import com.cavetale.core.util.Json;
+import com.cavetale.fam.trophy.Highscore;
+import com.cavetale.mytems.item.trophy.TrophyCategory;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.textOfChildren;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public final class KingOfTheRingPlugin extends JavaPlugin {
     protected KingOfTheRingCommand kingoftheringCommand = new KingOfTheRingCommand(this);
@@ -23,8 +29,13 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
                                                                 "Stygian",
                                                                 "Balrog",
                                                                 "LavaBucket");
+    protected static final Component TITLE = textOfChildren(text("PIT", DARK_RED),
+                                                            text("of", DARK_GRAY),
+                                                            text("DOOM", DARK_RED));
     protected File saveFolder;
     protected final Map<String, Game> games = new HashMap<>();
+    protected List<Highscore> highscore = List.of();
+    protected List<Component> highscoreLines = List.of();
 
     @Override
     public void onEnable() {
@@ -37,6 +48,7 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
         for (World world : Bukkit.getWorlds()) {
             onLoadWorld(world);
         }
+        computeHighscore();
     }
 
     @Override
@@ -113,5 +125,19 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
             }
             games.remove(game.name);
         }
+    }
+
+    protected void computeHighscore() {
+        highscore = Highscore.of(save.scores);
+        highscoreLines = Highscore.sidebar(highscore);
+    }
+
+    protected int rewardHighscore() {
+        return Highscore.reward(save.scores,
+                                "pit_of_doom",
+                                TrophyCategory.CUP,
+                                TITLE,
+                                hi -> ("You earned "
+                                       + hi.score + " point" + (hi.score == 1 ? "" : "s")));
     }
 }

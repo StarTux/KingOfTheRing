@@ -193,6 +193,12 @@ public final class Game {
             cleanUp();
             save.loopTicks = 0;
             save.loopCount += 1;
+            if (plugin.save.event) {
+                for (UUID uuid : save.players.keySet()) {
+                    plugin.save.addScore(uuid, 1);
+                }
+                plugin.computeHighscore();
+            }
         }
         for (Platform platform : platforms) {
             platform.tick();

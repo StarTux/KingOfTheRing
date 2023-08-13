@@ -2,7 +2,9 @@ package com.cavetale.kingofthering;
 
 import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.CommandArgCompleter;
+import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
+import com.cavetale.core.playercache.PlayerCache;
 import java.util.List;
 import org.bukkit.command.CommandSender;
 import static com.cavetale.core.command.CommandArgCompleter.supplyIgnoreCaseList;
@@ -32,6 +34,20 @@ public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlu
             .completers(supplyIgnoreCaseList(() -> List.copyOf(plugin.games.keySet())))
             .description("Stop a game")
             .senderCaller(this::stop);
+        // Score
+        CommandNode scoreNode = rootNode.addChild("score")
+            .description("Score commands");
+        scoreNode.addChild("add")
+            .description("Manipulate score")
+            .completers(PlayerCache.NAME_COMPLETER,
+                        CommandArgCompleter.integer(i -> i != 0))
+            .senderCaller(this::scoreAdd);
+        scoreNode.addChild("clear").denyTabCompletion()
+            .description("Clear all scores")
+            .senderCaller(this::scoreClear);
+        scoreNode.addChild("reward").denyTabCompletion()
+            .description("Reward players")
+            .senderCaller(this::scoreReward);
     }
 
     private boolean debug(CommandSender sender, String[] args) {
@@ -72,5 +88,28 @@ public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlu
         game.stop();
         sender.sendMessage(text("Stopping game: " + game.name, YELLOW));
         return true;
+    }
+
+    private boolean scoreClear(CommandSender sender, String[] args) {
+        if (args.length != 0) return false;
+        plugin.save.scores.clear();
+        plugin.computeHighscore();
+        sender.sendMessage(text("All scores cleared", AQUA));
+        return true;
+    }
+
+    private boolean scoreAdd(CommandSender sender, String[] args) {
+        if (args.length != 2) return false;
+        PlayerCache target = PlayerCache.require(args[0]);
+        int value = CommandArgCompleter.requireInt(args[1], i -> i != 0);
+        plugin.save.addScore(target.uuid, value);
+        plugin.computeHighscore();
+        sender.sendMessage(text("Score of " + target.name + " manipulated by " + value, AQUA));
+        return true;
+    }
+
+    private void scoreReward(CommandSender sender) {
+        int count = plugin.rewardHighscore();
+        sender.sendMessage(text("Rewarded " + count + " players", AQUA));
     }
 }
