@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
@@ -45,7 +46,7 @@ public final class EventListener implements Listener {
                 if (!game.isRunning()) return;
                 if (event.getEntity() instanceof Player) {
                     if (event.getDamager() instanceof Player) {
-                        event.setDamage(0.0);
+                        event.setCancelled(true);
                     }
                 }
             });
@@ -73,6 +74,7 @@ public final class EventListener implements Listener {
                 }
             });
         plugin.applyGameAt(event.getTo(), game -> {
+                if (!game.isRunning()) return;
                 event.setCancelled(true);
             });
     }
@@ -103,6 +105,13 @@ public final class EventListener implements Listener {
                     game.removePlayer(player);
                     game.spawnPlayer(player);
                 }
+            });
+    }
+
+    @EventHandler
+    private void onPlayerRespawn(PlayerRespawnEvent event) {
+        plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
+                event.setRespawnLocation(game.getRandomSpawnLocation());
             });
     }
 

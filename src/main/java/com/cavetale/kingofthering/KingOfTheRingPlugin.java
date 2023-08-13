@@ -105,12 +105,17 @@ public final class KingOfTheRingPlugin extends JavaPlugin {
             }
             List<Area> areas = entry.getValue();
             Game game = new Game(this, world, name, areas);
-            games.put(name, game);
             try {
                 game.enable();
             } catch (Exception e) {
                 getLogger().log(Level.SEVERE, "Enable game " + name, e);
+                continue;
             }
+            games.put(name, game);
+            getLogger().info("[" + world.getName() + "] Game loaded: " + name
+                             + " per:" + game.perimeters.size()
+                             + " are:" + game.areas.size()
+                             + " pla:" + game.platformShapes.size());
         }
     }
 

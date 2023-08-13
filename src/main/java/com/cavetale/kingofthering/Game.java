@@ -152,7 +152,7 @@ public final class Game {
         for (Player player : players) {
             if (player.getGameMode() == GameMode.SPECTATOR || player.getGameMode() == GameMode.CREATIVE) continue;
             if (!isInArea(player.getLocation())) {
-                player.sendMessage(text("You left the area!", RED));
+                player.sendMessage(text("You left the game area!", RED));
                 removePlayer(player);
             }
         }
@@ -216,7 +216,7 @@ public final class Game {
         List<String> names = new ArrayList<>();
         plugin.teleporting = true;
         for (Player player : playersInPerimeter()) {
-            if (player.getGameMode() == GameMode.SPECTATOR || player.getGameMode() == GameMode.CREATIVE) continue;
+            if (player.getGameMode() == GameMode.SPECTATOR) continue;
             player.teleport(randomPlatformLocation());
             player.sendMessage(text("Get ready!", DARK_RED));
             player.showTitle(Title.title(Component.text("Get ready!", NamedTextColor.GREEN),
@@ -260,7 +260,9 @@ public final class Game {
             list.addAll(it.enumerate());
         }
         Vec3i vec = list.get(random.nextInt(list.size()));
-        return vec.toBlock(getWorld()).getLocation().add(0.5, 1.0, 0.5);
+        Location result = vec.toBlock(getWorld()).getLocation().add(0.5, 1.0, 0.5);
+        result.setYaw((float) (random.nextDouble() * 360.0));
+        return result;
     }
 
     public boolean isPlayer(Player player) {
@@ -271,13 +273,19 @@ public final class Game {
         save.players.remove(player.getUniqueId());
     }
 
-    public void spawnPlayer(Player player) {
+    public Location getRandomSpawnLocation() {
         Set<Vec3i> set = new HashSet<>();
         for (var it : spawns) set.addAll(it.enumerate());
         List<Vec3i> list = List.copyOf(set);
         Vec3i spawn = list.get(random.nextInt(list.size()));
+        Location result = spawn.toBlock(getWorld()).getLocation().add(0.5, 1.0, 0.5);
+        result.setYaw((float) (random.nextDouble() * 360.0));
+        return result;
+    }
+
+    public void spawnPlayer(Player player) {
         plugin.teleporting = true;
-        player.teleport(spawn.toBlock(getWorld()).getLocation().add(0.5, 1.0, 0.5));
+        player.teleport(getRandomSpawnLocation());
         plugin.teleporting = false;
     }
 

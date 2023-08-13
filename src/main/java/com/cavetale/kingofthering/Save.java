@@ -8,6 +8,7 @@ public final class Save {
     protected boolean debug;
     protected boolean event;
     protected Map<UUID, Integer> scores = new HashMap<>();
+    protected String gameName; // default game
 
     public void addScore(UUID uuid, int value) {
         int old = scores.getOrDefault(uuid, 0);
