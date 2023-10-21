@@ -10,5 +10,6 @@ public final class GameSave {
     protected State state = State.IDLE;
     protected int loopTicks;
     protected int loopCount;
+    protected int countdownTicks;
     protected Map<UUID, String> players = new HashMap<>();
 }

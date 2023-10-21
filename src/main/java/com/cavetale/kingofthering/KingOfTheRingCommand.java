@@ -26,6 +26,10 @@ public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlu
             .completers(CommandArgCompleter.BOOLEAN)
             .description("Set event mode")
             .senderCaller(this::event);
+        rootNode.addChild("info").arguments("<game>")
+            .completers(supplyIgnoreCaseList(() -> List.copyOf(plugin.games.keySet())))
+            .description("Game info")
+            .senderCaller(this::info);
         rootNode.addChild("start").arguments("<game>")
             .completers(supplyIgnoreCaseList(() -> List.copyOf(plugin.games.keySet())))
             .description("Start a game")
@@ -69,6 +73,17 @@ public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlu
             plugin.save();
         }
         sender.sendMessage(text("Event = " + plugin.save.event, YELLOW));
+        return true;
+    }
+
+    private boolean info(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        Game game = plugin.games.get(args[0]);
+        if (game == null) throw new CommandWarn("Game not found: " + args[0]);
+        sender.sendMessage(text("Name: " + game.name, AQUA));
+        sender.sendMessage(text("Perimeters: " + game.perimeters.size(), AQUA));
+        sender.sendMessage(text("Areas: " + game.areas.size(), AQUA));
+        sender.sendMessage(text("Platforms: " + game.platformShapes.size(), AQUA));
         return true;
     }
 

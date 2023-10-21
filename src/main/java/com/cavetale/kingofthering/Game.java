@@ -18,6 +18,7 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -141,7 +142,29 @@ public final class Game {
         World world = getWorld();
         if (world == null) return;
         save.players.keySet().removeIf(u -> Bukkit.getPlayer(u) == null);
-        List<Player> players = getActivePlayers();
+        final List<Player> players = getActivePlayers();
+        if (save.state == State.COUNTDOWN) {
+            if (save.countdownTicks > 0) {
+                if (save.countdownTicks % 20 == 0) {
+                    final int seconds = save.countdownTicks / 20;
+                    for (Player player : players) {
+                        player.sendActionBar(text(seconds, GOLD));
+                    }
+                }
+                save.countdownTicks -= 1;
+            } else {
+                save.state = State.PLAY;
+            }
+            for (Player player : players) {
+                if (!isInArea(player.getLocation())) {
+                    player.sendMessage(text("Don't fall off!", RED));
+                    plugin.teleporting = true;
+                    player.teleport(randomPlatformLocation());
+                    plugin.teleporting = false;
+                }
+            }
+            return;
+        }
         if (!plugin.save.debug && players.size() == 1) {
             win(players.get(0));
             return;
@@ -183,6 +206,7 @@ public final class Game {
                 Platform platform = new Platform();
                 for (Vec3i vec : cuboid.enumerate()) {
                     Block block = vec.toBlock(world);
+                    if (block.isEmpty() || block.getType() == Material.LIGHT) continue;
                     platform.blocks.add(block);
                     platform.blockData.add(block.getBlockData());
                 }
@@ -231,7 +255,8 @@ public final class Game {
             save.players.put(player.getUniqueId(), player.getName());
         }
         plugin.teleporting = false;
-        save.state = State.PLAY;
+        save.state = State.COUNTDOWN;
+        save.countdownTicks = 20 * 10;
         save.loopTicks = 0;
         save.loopCount = 0;
         save();
@@ -255,12 +280,16 @@ public final class Game {
     }
 
     protected Location randomPlatformLocation() {
-        List<Vec3i> list = new ArrayList<>();
-        for (Cuboid it : platformShapes) {
-            list.addAll(it.enumerate());
+        List<Block> list = new ArrayList<>();
+        for (Cuboid cuboid : platformShapes) {
+            for (Vec3i vec : cuboid.enumerate()) {
+                Block block = vec.toBlock(getWorld());
+                if (block.isEmpty() || block.getType() == Material.LIGHT) continue;
+                list.add(block);
+            }
         }
-        Vec3i vec = list.get(random.nextInt(list.size()));
-        Location result = vec.toBlock(getWorld()).getLocation().add(0.5, 1.0, 0.5);
+        Block block = list.get(random.nextInt(list.size()));
+        Location result = block.getLocation().add(0.5, 1.0, 0.5);
         result.setYaw((float) (random.nextDouble() * 360.0));
         return result;
     }
