@@ -250,6 +250,9 @@ public final class Game {
             for (PotionEffect potionEffect : player.getActivePotionEffects()) {
                 player.removePotionEffect(potionEffect.getType());
             }
+            player.setHealth(20.0);
+            player.setFoodLevel(20);
+            player.setSaturation(20f);
             player.setFlying(false);
             player.setGliding(false);
             save.players.put(player.getUniqueId(), player.getName());
