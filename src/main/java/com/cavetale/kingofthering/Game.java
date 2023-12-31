@@ -199,7 +199,9 @@ public final class Game {
             }
         } else if (save.loopTicks == 20 * 7) {
             List<Cuboid> allPlatforms = new ArrayList<>(platformShapes);
-            int max = Math.min(allPlatforms.size() - 1, (2 * save.loopCount + 3));
+            final int loopFactor = Math.max(1, allPlatforms.size() / 15);
+            final int init = Math.max(1, allPlatforms.size() / 10);
+            final int max = Math.min(allPlatforms.size() - 1, (loopFactor * save.loopCount + init));
             Collections.shuffle(allPlatforms);
             for (int i = 0; i < max; i += 1) {
                 Cuboid cuboid = allPlatforms.get(i);
