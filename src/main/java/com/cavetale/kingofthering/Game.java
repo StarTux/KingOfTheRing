@@ -215,15 +215,27 @@ public final class Game {
                 platform.ticks = i * -5;
                 platforms.add(platform);
             }
-        } else if (save.loopTicks == 20 * 25) {
-            cleanUp();
-            save.loopTicks = 0;
-            save.loopCount += 1;
-            if (plugin.save.event) {
-                for (UUID uuid : save.players.keySet()) {
-                    plugin.save.addScore(uuid, 1);
+        }
+        boolean allPlatformsDone = !platforms.isEmpty();
+        for (Platform platform : platforms) {
+            if (!platform.done) {
+                allPlatformsDone = false;
+                break;
+            }
+        }
+        if (allPlatformsDone) {
+            save.allPlatformsDoneTicks += 1;
+            if (save.allPlatformsDoneTicks >= 20) {
+                cleanUp();
+                save.allPlatformsDoneTicks = 0;
+                save.loopTicks = 0;
+                save.loopCount += 1;
+                if (plugin.save.event) {
+                    for (UUID uuid : save.players.keySet()) {
+                        plugin.save.addScore(uuid, 1);
+                    }
+                    plugin.computeHighscore();
                 }
-                plugin.computeHighscore();
             }
         }
         for (Platform platform : platforms) {

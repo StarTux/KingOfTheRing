@@ -11,5 +11,6 @@ public final class GameSave {
     protected int loopTicks;
     protected int loopCount;
     protected int countdownTicks;
+    protected int allPlatformsDoneTicks;
     protected Map<UUID, String> players = new HashMap<>();
 }

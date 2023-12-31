@@ -13,6 +13,7 @@ public final class Platform {
     protected List<Block> blocks = new ArrayList<>();
     protected List<BlockData> blockData = new ArrayList<>();
     protected int ticks = 0;
+    protected boolean done;
 
     protected void tick() {
         ticks += 1;
@@ -32,6 +33,7 @@ public final class Platform {
             loc.getWorld().playSound(loc, Sound.BLOCK_GLASS_BREAK, SoundCategory.MASTER, 0.5f, 1.0f);
         } else if (ticks == 120) {
             setAll(Material.AIR.createBlockData());
+            done = true;
         }
     }
 
