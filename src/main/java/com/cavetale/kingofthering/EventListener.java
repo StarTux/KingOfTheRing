@@ -56,7 +56,7 @@ public final class EventListener implements Listener {
     private void onFoodLevelChange(FoodLevelChangeEvent event) {
         plugin.applyGameAt(event.getEntity().getLocation(), game -> {
                 if (!(event.getEntity() instanceof Player player)) return;
-                if (game.isPlayer(player) && event.getFoodLevel() < player.getFoodLevel()) {
+                if (event.getFoodLevel() < player.getFoodLevel()) {
                     event.setCancelled(true);
                 }
             });
