@@ -12,5 +12,11 @@ public final class GameSave {
     protected int loopCount;
     protected int countdownTicks;
     protected int allPlatformsDoneTicks;
+    protected Map<UUID, Integer> playerRounds = new HashMap<>();
     protected Map<UUID, String> players = new HashMap<>();
+
+    public void addRound(UUID uuid, int amount) {
+        final int old = playerRounds.getOrDefault(uuid, 0);
+        playerRounds.put(uuid, old + 1);
+    }
 }

@@ -1,6 +1,7 @@
 package com.cavetale.kingofthering;
 
 import com.cavetale.area.struct.Area;
+import com.cavetale.core.money.Money;
 import com.cavetale.core.struct.Cuboid;
 import com.cavetale.core.struct.Vec3i;
 import com.cavetale.core.util.Json;
@@ -230,6 +231,9 @@ public final class Game {
                 save.allPlatformsDoneTicks = 0;
                 save.loopTicks = 0;
                 save.loopCount += 1;
+                for (UUID uuid : save.players.keySet()) {
+                    save.addRound(uuid, 1);
+                }
                 if (plugin.save.event) {
                     for (UUID uuid : save.players.keySet()) {
                         plugin.save.addScore(uuid, 1);
@@ -270,6 +274,7 @@ public final class Game {
             player.setFlying(false);
             player.setGliding(false);
             save.players.put(player.getUniqueId(), player.getName());
+            save.playerRounds.put(player.getUniqueId(), 0);
         }
         plugin.teleporting = false;
         save.state = State.COUNTDOWN;
@@ -288,6 +293,7 @@ public final class Game {
         task.cancel();
         save.state = State.IDLE;
         save.players.clear();
+        save.playerRounds.clear();
         save();
         cleanUp();
     }
@@ -343,6 +349,12 @@ public final class Game {
             player.showTitle(Title.title(winner.displayName(),
                                          Component.text("wins the game", NamedTextColor.GREEN)));
         }
+        Money.get().give(winner.getUniqueId(), 10_000.0, plugin, "Pit of Doom");
+        for (var entry : save.playerRounds.entrySet()) {
+            int money = entry.getValue() * 500;
+            if (money == 0) continue;
+            Money.get().give(entry.getKey(), (double) money, plugin, "Pit of Doom");
+        }
         if (plugin.save.event) {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "titles unlockset " + winner.getName()
                                    + " " + String.join(" ", KingOfTheRingPlugin.WINNER_TITLES));
@@ -354,10 +366,15 @@ public final class Game {
     }
 
     protected void draw() {
+        for (var entry : save.playerRounds.entrySet()) {
+            final int money = entry.getValue() * 500;
+            if (money == 0) continue;
+            Money.get().give(entry.getKey(), (double) money, plugin, "Pit of Doom");
+        }
         for (Player player : playersInPerimeter()) {
             player.sendMessage(text("DRAW! Nobody wins", RED));
             player.showTitle(Title.title(Component.text("Draw!", NamedTextColor.RED),
-                                        Component.text("Nobody wins", NamedTextColor.RED)));
+                                         Component.text("Nobody wins", NamedTextColor.RED)));
         }
         stop();
     }
