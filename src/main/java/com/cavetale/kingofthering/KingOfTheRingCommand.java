@@ -5,7 +5,9 @@ import com.cavetale.core.command.CommandArgCompleter;
 import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.playercache.PlayerCache;
+import com.cavetale.fam.trophy.Highscore;
 import java.util.List;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import static com.cavetale.core.command.CommandArgCompleter.supplyIgnoreCaseList;
 import static net.kyori.adventure.text.Component.text;
@@ -128,5 +130,8 @@ public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlu
     private void scoreReward(CommandSender sender) {
         int count = plugin.rewardHighscore();
         sender.sendMessage(text("Rewarded " + count + " players", AQUA));
+        for (Component line : Highscore.rewardMoneyWithFeedback(plugin, plugin.getSave().getScores(), "Pit of Doom")) {
+            sender.sendMessage(line);
+        }
     }
 }

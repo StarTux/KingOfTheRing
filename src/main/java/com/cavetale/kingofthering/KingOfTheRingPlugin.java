@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,6 +21,7 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
+@Getter
 public final class KingOfTheRingPlugin extends JavaPlugin {
     protected KingOfTheRingCommand kingoftheringCommand = new KingOfTheRingCommand(this);
     protected EventListener eventListener = new EventListener(this);

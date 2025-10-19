@@ -3,7 +3,9 @@ package com.cavetale.kingofthering;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import lombok.Data;
 
+@Data
 public final class Save {
     protected boolean debug;
     protected boolean event;
