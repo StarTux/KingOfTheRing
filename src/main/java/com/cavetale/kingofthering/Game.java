@@ -209,7 +209,7 @@ public final class Game {
                 Platform platform = new Platform();
                 for (Vec3i vec : cuboid.enumerate()) {
                     Block block = vec.toBlock(world);
-                    if (block.isEmpty() || block.getType() == Material.LIGHT) continue;
+                    if (block.isEmpty() || block.getType() == Material.LIGHT || block.getType() == Material.BARRIER) continue;
                     platform.blocks.add(block);
                     platform.blockData.add(block.getBlockData());
                 }
