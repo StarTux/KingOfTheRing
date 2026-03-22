@@ -39,6 +39,10 @@ public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlu
             .completers(supplyIgnoreCaseList(() -> List.copyOf(plugin.games.keySet())))
             .description("Stop a game")
             .senderCaller(this::stop);
+        rootNode.addChild("setgame").arguments("<game>")
+            .completers(supplyIgnoreCaseList(() -> List.copyOf(plugin.games.keySet())))
+            .description("Set the Game")
+            .senderCaller(this::setgame);
         // Score
         CommandNode scoreNode = rootNode.addChild("score")
             .description("Score commands");
@@ -96,6 +100,16 @@ public final class KingOfTheRingCommand extends AbstractCommand<KingOfTheRingPlu
         plugin.save();
         game.start();
         sender.sendMessage(text("Starting game: " + game.name, AQUA));
+        return true;
+    }
+
+    private boolean setgame(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        Game game = plugin.games.get(args[0]);
+        if (game == null) throw new CommandWarn("Game not found: " + args[0]);
+        plugin.save.gameName = game.name;
+        plugin.save();
+        sender.sendMessage(text("Game set set to " + game.name, AQUA));
         return true;
     }
 
