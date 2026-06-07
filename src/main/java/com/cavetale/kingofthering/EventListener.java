@@ -108,9 +108,14 @@ public final class EventListener implements Listener {
 
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
-        plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
+        boolean res = plugin.applyGameAt(event.getPlayer().getLocation(), game -> {
                 event.setRespawnLocation(game.getRandomSpawnLocation());
             });
+        if (res) return;
+        for (Game game : plugin.getGames().values()) {
+            event.setRespawnLocation(game.getRandomSpawnLocation());
+            return;
+        }
     }
 
     @EventHandler
