@@ -306,6 +306,7 @@ public final class Game {
         List<Block> list = new ArrayList<>();
         for (Cuboid cuboid : platformShapes) {
             for (Vec3i vec : cuboid.enumerate()) {
+                if (vec.y != cuboid.by) continue;
                 Block block = vec.toBlock(getWorld());
                 if (block.isEmpty() || block.getType() == Material.LIGHT) continue;
                 list.add(block);
