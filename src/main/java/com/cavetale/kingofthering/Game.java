@@ -257,7 +257,7 @@ public final class Game {
         if (world == null) return;
         List<String> names = new ArrayList<>();
         plugin.teleporting = true;
-        for (Player player : playersInPerimeter()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             if (player.getGameMode() == GameMode.SPECTATOR) continue;
             player.teleport(randomPlatformLocation());
             player.sendMessage(text("Get ready!", DARK_RED));
