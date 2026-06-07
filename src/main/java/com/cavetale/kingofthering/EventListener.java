@@ -113,8 +113,10 @@ public final class EventListener implements Listener {
             });
         if (res) return;
         for (Game game : plugin.getGames().values()) {
-            event.setRespawnLocation(game.getRandomSpawnLocation());
-            return;
+            if (game.getSave().getState() != State.IDLE) {
+                event.setRespawnLocation(game.getRandomSpawnLocation());
+                return;
+            }
         }
     }
 
