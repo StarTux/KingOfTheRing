@@ -39,7 +39,7 @@ public final class Platform {
 
     protected void setAll(BlockData data) {
         for (int i = 0; i < blocks.size(); i += 1) {
-            if (blocks.get(i).getType().name().endsWith("_BUTTON")) {
+            if (blocks.get(i).getType().name().toLowerCase().endsWith("_button")) {
                 blocks.get(i).setType(org.bukkit.Material.AIR);
             } else {
                 blocks.get(i).setBlockData(data);
