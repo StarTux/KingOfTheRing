@@ -41,6 +41,8 @@ public final class Platform {
         for (int i = 0; i < blocks.size(); i += 1) {
             if (blocks.get(i).getType().name().toLowerCase().endsWith("_button")) {
                 blocks.get(i).setType(org.bukkit.Material.AIR);
+            } else if (blocks.get(i).getType() == Material.AIR) {
+                return;
             } else {
                 blocks.get(i).setBlockData(data);
             }
