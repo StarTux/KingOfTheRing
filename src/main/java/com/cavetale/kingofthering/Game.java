@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -31,6 +32,7 @@ import org.bukkit.scheduler.BukkitTask;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
+@Getter
 public final class Game {
     protected final KingOfTheRingPlugin plugin;
     protected final String worldName;
