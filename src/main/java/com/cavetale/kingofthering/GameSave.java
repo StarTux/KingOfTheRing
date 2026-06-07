@@ -3,7 +3,9 @@ package com.cavetale.kingofthering;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import lombok.Getter;
 
+@Getter
 public final class GameSave {
     protected String worldName = "";
     protected String areaName = "";
